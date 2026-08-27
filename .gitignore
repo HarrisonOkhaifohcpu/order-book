@@ -1,0 +1,50 @@
+# Build artifacts
+build/
+cpp/build/
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.pyd
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Benchmark raw output (keep results.md + png, ignore scratch)
+benchmark/*.json
+!benchmark/results.md
+
+# Backup archives
+*.tar.gz
+*.zip
