@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake build-essential
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build C++ standalone smoke tests (CMake)
+        run: |
+          cd cpp
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j 4 --target test_order_book
+
+      - name: Run C++ standalone smoke tests
+        run: ./cpp/build/test_order_book
+
+      - name: Build & install pybind11 extension (orderbook_cpp)
+        run: pip install -e .
+
+      - name: Verify pybind11 module is importable
+        run: python -c "import orderbook_cpp; b = orderbook_cpp.OrderBook(); print('orderbook_cpp import OK')"
+
+      - name: Run pytest suite
+        run: python -m pytest
