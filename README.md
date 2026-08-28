@@ -137,7 +137,7 @@ python benchmark/run_benchmark.py
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push/PR to `main`:
+`.github/workflows/main.yml` runs on every push/PR to `main`:
 1. Installs system build tools (`cmake`, `build-essential`) and Python deps.
 2. Builds and runs the standalone C++ smoke-test binary via CMake.
 3. Builds and installs the pybind11 extension (`pip install -e .`) and
