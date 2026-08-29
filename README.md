@@ -114,6 +114,37 @@ pytest
 python benchmark/run_benchmark.py
 ```
 
+## Running with Docker
+
+A single `Dockerfile` (no docker-compose) builds the C++/pybind11 extension
+inside the image and runs the API with uvicorn. It's a two-stage build: a
+`builder` stage compiles `orderbook_cpp` into a wheel, and the final slim
+runtime image installs `requirements.txt` + the prebuilt wheel and copies in
+`app/`.
+
+```bash
+# Build the image (compiles the C++ extension inside the container)
+docker build -t order-book .
+
+# Run it, mapping the API to localhost:8000
+docker run --rm -p 8000:8000 order-book
+
+# In another terminal:
+curl http://localhost:8000/health
+# -> {"status":"ok"}
+```
+
+This was built and verified locally: `docker build` completes the C++
+compile + wheel build + Python dependency install, and `docker run` starts
+uvicorn and serves real traffic -- confirmed with a full `POST /orders` ->
+`GET /book` -> `GET /trades` round trip against the running container, not
+just a health check.
+
+> **Note:** in some sandboxed/CI environments without working default bridge
+> networking, `docker build`/`docker run` may need `--network=host` (e.g.
+> `docker build --network=host -t order-book .`). This is an environment
+> quirk, not something the Dockerfile itself requires.
+
 ## Testing Strategy
 
 - **C++ smoke tests** (`cpp/tests/test_order_book.cpp`): 11 assert-style
@@ -205,8 +236,7 @@ match a previously-resting order from "the same caller").
 Multiple instruments (multiple `OrderBook` instances keyed by symbol),
 market orders, order modification (cancel-replace), persistence (trades to
 SQLite/Postgres), WebSocket depth streaming instead of polling,
-multi-threading with per-instrument locks, a Dockerfile for one-command
-local runs.
+multi-threading with per-instrument locks.
 
 ## Tech Stack
 
@@ -222,7 +252,9 @@ GitHub Actions · matplotlib (benchmark chart)
 - ✅ 32 passing tests (engine-level + API-level)
 - ✅ GitHub Actions CI (verified locally against a clean venv before commit)
 - ✅ Benchmark script + real results + chart
-- ⏳ Dockerfile (planned, not yet added -- explicitly a nice-to-have per
-  project scope)
+- ✅ Dockerfile (single file, no docker-compose -- builds the C++/pybind11
+  extension inside the image; `docker build` + `docker run` verified with a
+  real `POST /orders` -> `GET /book` -> `GET /trades` round trip, not just a
+  health check)
 - ⏳ Optional HTML depth viewer (explicitly out of scope for the initial
   build per project priorities)
